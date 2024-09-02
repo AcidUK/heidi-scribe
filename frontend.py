@@ -2,8 +2,9 @@
 import PySimpleGUI as sg
 
 class Gui():
-    def __init__(self):
-        self.state = []
+    def __init__(self, kwargs):
+        self.state = {}
+        self.state.update(kwargs)
 
     def update(self, history, exam, imp, plan):
         self.state['history'] = history
@@ -12,7 +13,11 @@ class Gui():
         self.state['plan'] = plan
 
     def clear(self):
-        self.state = []
+        self.state = {}
+
+    def remove_headings(self):
+        for item, value in self.state.items():
+            self.state[item] = '\n'.join(value.splitlines()[1:])
     
     def show_gui(self):
 

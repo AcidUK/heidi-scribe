@@ -2,10 +2,7 @@ import re
 from collections import namedtuple
 from typing import List
 import pyperclip
-import itertools
-
-
-consultation = pyperclip.paste()
+import os
 
 SectionResponse = namedtuple("SectionResponse", ['output', 'newlines_handled'])
 
@@ -133,7 +130,16 @@ def get_items(consultation: str):
 
 
 
-def get_split_sections(consultation: str):
+def get_split_sections(consultation: str) -> dict:
+    """ Gets history, exam, imp and plan from consultation
+
+    Args:
+        consultation (str): a multiline string containing a consultation from heidi using the H&P template
+
+    Returns:
+        dict: A dictionary containing history, eam, imp and plan sections
+    """  
+
     items = get_items(consultation)
 
     titles = {
@@ -149,17 +155,15 @@ def get_split_sections(consultation: str):
 
     for i in items:
         output = i.parse()
+        output = os.linesep.join([s for s in output.splitlines() if s])
         if i.heading in sections:
             cur = sections[i.heading]
-        result[cur] += output
+        if result[cur]:
+            result[cur] += output
+        else:
+            result[cur] = output
 
     return result
-
-
-
-
-
-
 
 
 def main(consultation: str):
@@ -174,5 +178,6 @@ def main(consultation: str):
 
 
 
-#if __name__ == "__main__":
-pyperclip.copy(main(consultation))
+if __name__ == "__main__":
+    consultation = pyperclip.paste()
+    pyperclip.copy(main(consultation))
