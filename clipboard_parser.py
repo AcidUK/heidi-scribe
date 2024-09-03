@@ -2,12 +2,15 @@ import re
 from collections import namedtuple
 from typing import List
 import pyperclip
-import os
+from os import linesep
 
-SectionResponse = namedtuple("SectionResponse", ['output', 'newlines_handled'])
+SectionResponse = namedtuple("SectionResponse", ["output", "newlines_handled"])
+
 
 class BlockItem:
-    def __init__(self, heading: str, bullets: List[str], prose: str, comma_separated_prose: str):
+    def __init__(
+        self, heading: str, bullets: List[str], prose: str, comma_separated_prose: str
+    ):
         self.heading = heading
         self.bullets = bullets
         self.prose = prose
@@ -18,13 +21,24 @@ class BlockItem:
 
         if re.match(r"^History:", self.heading):
             result = self.parse_history()
-        elif re.match(r"^Past Medical History:", self.heading) or re.match(r"PMHx:", self.heading) or re.match(r"PMH:", self.heading):
+        elif (
+            re.match(r"^Past Medical History:", self.heading)
+            or re.match(r"PMHx:", self.heading)
+            or re.match(r"PMH:", self.heading)
+        ):
             result = self.parse_pmh()
-        elif re.match(r"^Physical Examination:", self.heading) or re.match(r"Examination:", self.heading) or re.match(r"Exam:", self.heading) or re.match(r"O/E:", self.heading):
+        elif (
+            re.match(r"^Physical Examination:", self.heading)
+            or re.match(r"Examination:", self.heading)
+            or re.match(r"Exam:", self.heading)
+            or re.match(r"O/E:", self.heading)
+        ):
             result = self.parse_exam()
         elif re.match(r"^Impression:", self.heading):
             result = self.parse_imp()
-        elif re.match(r"^Management Plan:", self.heading) or re.match(r"Plan:", self.heading):
+        elif re.match(r"^Management Plan:", self.heading) or re.match(
+            r"Plan:", self.heading
+        ):
             result = self.parse_plan()
         else:
             result = self.parse_unhandled()
@@ -35,19 +49,19 @@ class BlockItem:
 
         return output
 
-
     def parse_history(self):
         return SectionResponse(self.heading + "\n" + self.prose + "\n", True)
 
     def parse_pmh(self):
+        self.heading = "PMH:"
         return SectionResponse("Hx of " + self.comma_separated_prose, False)
 
     def parse_exam(self):
         if self.comma_separated_prose == "N/A":
             return SectionResponse("", True)
-        
+
         self.heading = "Examination:"
-        output_bullets = [ b.replace("Vitals", "Obs") for b in self.bullets ]
+        output_bullets = [b.replace("Vitals", "Obs") for b in self.bullets]
         return SectionResponse(self.heading + "\n" + "\n".join(output_bullets), False)
 
     def parse_imp(self):
@@ -56,11 +70,11 @@ class BlockItem:
 
         self.heading = "Impression:"
         return SectionResponse(self.heading + "\n" + "\n".join(self.bullets), False)
-        
+
     def parse_plan(self):
         self.heading = "Plan:"
         return SectionResponse(self.heading + "\n" + "\n".join(self.bullets), False)
-    
+
     def parse_unhandled(self):
         # return SectionResponse(self.heading + "\n" + "\n".join(self.bullets), False)
         return SectionResponse(self.heading + " " + self.prose + "\n", True)
@@ -71,24 +85,29 @@ def block_parser(block: str) -> BlockItem:
 
     block = block.lstrip().rstrip()
 
-    if block == '':
-        return None # Guard for empty block entirely
-    
+    if block == "":
+        return None  # Guard for empty block entirely
+
     contents = block.splitlines()
-    
+
     heading = contents.pop(0)
     bullets = contents
 
     if len(bullets) == 1:
-        bullets[0] = bullets[0].lstrip('- ')
+        bullets[0] = bullets[0].lstrip("- ")
 
-    if bullets == ['']:
-        return None # Guard for a block with a heading but no contents
+    if bullets == [""]:
+        return None  # Guard for a block with a heading but no contents
 
     prose = parse_bullets_to_prose(contents)
     comma_separated_prose = parse_bullets_to_comma_separated_prose(contents)
 
-    item = BlockItem(heading=heading, bullets=bullets, prose=prose, comma_separated_prose=comma_separated_prose)
+    item = BlockItem(
+        heading=heading,
+        bullets=bullets,
+        prose=prose,
+        comma_separated_prose=comma_separated_prose,
+    )
 
     return item
 
@@ -101,7 +120,7 @@ def parse_bullets_to_prose(bullets: list) -> str:
     for line in bullets:
         if line.endswith("."):
             line = line[:-1]
-        line = line.replace('- ', '')
+        line = line.replace("- ", "")
         output += line + ". "
 
     return output[:-2]
@@ -112,7 +131,7 @@ def parse_bullets_to_comma_separated_prose(bullets: list) -> str:
 
     lower_case = [bullet[0].lower() + bullet[1:] for bullet in bullets]
     prose = parse_bullets_to_prose(lower_case)
-    prose = prose.replace('. ', ', ')
+    prose = prose.replace(". ", ", ")
     return prose
 
 
@@ -123,41 +142,40 @@ def get_items(consultation: str):
     else:
         sections = consultation.split("\n\n")
 
-
     items = [block_parser(s) for s in sections]
     return items
 
 
-
-
 def get_split_sections(consultation: str) -> dict:
-    """ Gets history, exam, imp and plan from consultation
+    """Gets history, exam, imp and plan from consultation
 
     Args:
         consultation (str): a multiline string containing a consultation from heidi using the H&P template
 
     Returns:
         dict: A dictionary containing history, eam, imp and plan sections
-    """  
+    """
 
     items = get_items(consultation)
 
     titles = {
-        'history' : 'History:',
-        'exam': 'Examination:',
-        'imp': 'Impression:',
-        'plan': 'Plan:',
+        "history": "History:",
+        "exam": "Examination:",
+        "imp": "Impression:",
+        "plan": "Plan:",
     }
-    sections = dict((v,k) for k,v in titles.items())
+    sections = dict((v, k) for k, v in titles.items())
     result = dict.fromkeys(titles.keys())
 
-    cur = 'history'
+    cur = "history"
 
     for i in items:
         output = i.parse()
-        output = os.linesep.join([s for s in output.splitlines() if s])
+        output = linesep.join([s for s in output.splitlines() if s])
         if i.heading in sections:
             cur = sections[i.heading]
+        if cur == "history" and i.heading == "PMH:":
+            output = "\r\n" + output
         if result[cur]:
             result[cur] += output
         else:
@@ -175,7 +193,6 @@ def main(consultation: str):
             output += item.parse()
 
     return output
-
 
 
 if __name__ == "__main__":
