@@ -6,6 +6,10 @@ import time
 from enum import Enum
 from datetime import datetime, timedelta
 import pyautogui as ag
+import pystray
+from sys import exit
+
+from PIL import Image, ImageDraw
 
 
 class State(Enum):
@@ -77,9 +81,32 @@ def middle_mouse():
     print("Click!")
 
 
-mouse.on_button(
-    callback=middle_mouse, buttons=(mouse.MIDDLE), types=(mouse.DOWN, mouse.DOUBLE)
-)
+def create_image(width, height, color1, color2):
+    # Generate an image and draw a pattern
+    image = Image.new("RGB", (width, height), color1)
+    dc = ImageDraw.Draw(image)
+    dc.rectangle((width // 2, 0, width, height // 2), fill=color2)
+    dc.rectangle((0, height // 2, width // 2, height), fill=color2)
 
-while 1:
-    time.sleep(0.01)
+    return image
+
+
+def main():
+    mouse.on_button(
+        callback=middle_mouse, buttons=(mouse.MIDDLE), types=(mouse.DOWN, mouse.DOUBLE)
+    )
+
+    def quit(icon, item):
+        icon.stop()
+        exit(0)
+
+    # In order for the icon to be displayed, you must provide an icon
+    icon = pystray.Icon(
+        "test name",
+        icon=create_image(64, 64, "black", "white"),
+        menu=pystray.Menu(pystray.MenuItem("Documentation History Importer", None), pystray.Menu.SEPARATOR, pystray.MenuItem("Exit", quit)),
+    ).run()
+
+
+if __name__ == "__main__":
+    main()
