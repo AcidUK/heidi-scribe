@@ -54,7 +54,12 @@ class BlockItem:
 
     def parse_pmh(self):
         self.heading = "PMH:"
-        return SectionResponse("Hx of " + self.comma_separated_prose, False)
+        output = ""
+        if self.comma_separated_prose.lower().startswith('history of'):
+            output = self.comma_separated_prose
+        else:
+            output = "Hx of " + self.comma_separated_prose
+        return SectionResponse(output, False)
 
     def parse_exam(self):
         if self.comma_separated_prose == "N/A":
@@ -174,7 +179,7 @@ def get_split_sections(consultation: str) -> dict:
         output = linesep.join([s for s in output.splitlines() if s])
         if i.heading in sections:
             cur = sections[i.heading]
-        if cur == "history" and i.heading == "PMH:":
+        if cur == "history" and (i.heading != 'History:'):
             output = "\r\n" + output
         if result[cur]:
             result[cur] += output

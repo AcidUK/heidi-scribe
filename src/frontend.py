@@ -19,7 +19,8 @@ class Gui:
 
     def remove_headings(self):
         for item, value in self.state.items():
-            self.state[item] = "\r\n".join(value.splitlines()[1:])
+            if value:
+                self.state[item] = "\r\n".join(value.splitlines()[1:])
 
     def show_gui(self):
 

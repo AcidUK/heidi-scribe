@@ -4,6 +4,10 @@ A tool to reformat the ai consultation notes produced by heidi the AI scribe too
 
 This tool copies a consultation, shows an editor, and then will paste it into Systmone.
 
+## Video Instructions
+
+[![Watch the video](https://img.youtube.com/vi/I1D9TbiHQSs/hqdefault.jpg)](https://youtu.be/I1D9TbiHQSs)
+
 ## Instructions
 
 * Download the latest version from the releases section on the right
@@ -13,3 +17,10 @@ This tool copies a consultation, shows an editor, and then will paste it into Sy
 * Select which sections you want to copy to Systmone and then press Ok
 * Middle click the History box in your Systmone consultation and the tool will paste in the sections
 * (Optional) - Sometimes if you have issued a prescription, this will prevent the Plan from being input. If this happens you should middle click on the Plan box after.
+
+## TODO
+
+* Extra spaces in sub-bullet point lists
+* Numereical lists in plan
+* Editing box spacing issue?
+* 'Hx of history of'
