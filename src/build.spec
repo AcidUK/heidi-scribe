@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['src\\history_clipboard_manager.py'],
+    ['history_clipboard_manager.py'],
     pathex=[],
     binaries=[],
     datas=[],
